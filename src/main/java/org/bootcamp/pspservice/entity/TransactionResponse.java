@@ -5,15 +5,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.bootcamp.pspservice.enums.TransactionStatus;
 
-import java.io.Serializable;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class TransactionMessage implements Serializable {
-
+public class TransactionResponse {
     private String cardNumber;
-    private int amount;
-    private String merchantId;
+    private long remainingBalance;
     private TransactionStatus status;
 }

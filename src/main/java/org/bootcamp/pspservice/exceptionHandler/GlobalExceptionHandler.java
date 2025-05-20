@@ -2,31 +2,45 @@ package org.bootcamp.pspservice.exceptionHandler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @ControllerAdvice
-class GlobalExceptionHandler {
+public class GlobalExceptionHandler {
 
+    // هندل کردن خطاهای اعتبارسنجی (مثلا @Valid)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
-                .map(err -> err.getDefaultMessage())
-                .findFirst()
-                .orElse("خطای نامشخصی رخ داده است.");
-        return ResponseEntity.badRequest().body(errorMessage);
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(
+            MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), "مقدار وارد شده در فیلد '" + error.getField() + "' معتبر نیست.");
+        }
+        return ResponseEntity.badRequest().body(errors);
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
-        return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());
-    }
-
+    // هندل کردن استثناهای عمومی
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGenericException(Exception ex) {
+    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("خطا", "مشکلی در پردازش درخواست رخ داده است. لطفا دوباره تلاش کنید.");
         ex.printStackTrace();
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("خطای داخلی در سیستم رخ داده است.");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+
+    @ExceptionHandler(MerchantNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleMerchantNotFoundException(MerchantNotFoundException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("خطا", ex.getMessage() != null ? ex.getMessage() : "پذیرنده مورد نظر یافت نشد.");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
 }

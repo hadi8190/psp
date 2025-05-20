@@ -1,25 +1,25 @@
 package org.bootcamp.pspservice.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.bootcamp.pspservice.enums.TransactionStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
-@Document("transactions")
+@Document(collection = "transactions")
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
-@Getter
 @Data
-public class TransactionDocument implements Serializable {
+public class Transaction {
     @Id
     private UUID id;
     private String cardNumber;
-    private int amount;
+    private long amount;
     private String merchantId;
     private TransactionStatus status;
-
+    private Date timestamp;
 }
